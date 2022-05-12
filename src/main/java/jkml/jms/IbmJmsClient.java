@@ -30,18 +30,18 @@ public class IbmJmsClient extends JmsClient {
 			cf.setStringProperty(CommonConstants.WMQ_QUEUE_MANAGER, queueManager.getName());
 			return cf;
 		} catch (JMSException e) {
-			throw new IllegalStateException(e);
+			throw new JmsException(e);
 		}
 	}
 
 	@Override
 	protected Queue createQueue(String queueName) {
-		Queue queue = context.createQueue("queue:///" + queueName);
+		Queue queue = getContext().createQueue("queue:///" + queueName);
 		try {
 			// Do not send JMS header
 			((MQDestination) queue).setTargetClient(CommonConstants.WMQ_CLIENT_NONJMS_MQ);
 		} catch (JMSException e) {
-			throw new IllegalStateException(e);
+			throw new JmsException(e);
 		}
 		return queue;
 	}

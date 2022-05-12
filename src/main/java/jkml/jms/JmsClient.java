@@ -1,9 +1,11 @@
 package jkml.jms;
 
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
@@ -15,105 +17,115 @@ import javax.jms.QueueBrowser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-
 public abstract class JmsClient implements AutoCloseable {
-
-	private static final Gson GSON = new Gson();
 
 	private final Logger log = LoggerFactory.getLogger(JmsClient.class);
 
-	protected JMSContext context;
+	private final Map<String, Queue> queueMap = new HashMap<>();
+
+	private JMSContext context;
 
 	protected abstract ConnectionFactory getConnectionFactory();
 
 	protected Queue createQueue(String queueName) {
-		return context.createQueue(queueName);
+		return getContext().createQueue(queueName);
 	}
 
-	/** Creates context */
-	public void connect() {
+	private Queue getQueue(String queueName) {
+		return queueMap.computeIfAbsent(queueName, this::createQueue);
+	}
+
+	protected JMSContext getContext() {
+		if (context == null) {
+			context = getConnectionFactory().createContext(JMSContext.AUTO_ACKNOWLEDGE);
+		}
+		return context;
+	}
+
+	public boolean connect() {
 		log.info("Connecting to provider");
-		context = getConnectionFactory().createContext();
+		try (Connection conn = getConnectionFactory().createConnection()) {
+			conn.start();
+			log.info("Connected to provider");
+			return true;
+		} catch (JMSException e) {
+			log.info("Failed to connect to provider");
+			return false;
+		}
 	}
 
 	public void put(String queueName, String message) {
 		log.info("Sending message to queue: {}", queueName);
-		context.createProducer().send(createQueue(queueName), message);
+
+		getContext().createProducer().send(getQueue(queueName), message);
 	}
 
 	public JmsMessage get(String queueName) {
 		log.info("Receiving message from queue: {}", queueName);
-		try (JMSConsumer consumer = context.createConsumer(createQueue(queueName))) {
-			Message message;
-			if ((message = consumer.receiveNoWait()) != null) {
-				return toJmsMessage(message);
-			} else {
-				return null;
-			}
+
+		try (JMSConsumer consumer = getContext().createConsumer(getQueue(queueName))) {
+			return toJmsMessage(consumer.receiveNoWait());
+		} catch (JMSException e) {
+			throw new JmsException(e);
 		}
 	}
 
-	public long clear(String queueName) {
-		log.info("Removes all messages from queue: {}", queueName);
-		long deleted = 0;
-		try (JMSConsumer consumer = context.createConsumer(createQueue(queueName))) {
+	public int clear(String queueName) {
+		log.info("Deleting all messages in queue: {}", queueName);
+
+		try (JMSConsumer consumer = getContext().createConsumer(getQueue(queueName))) {
+			int count = 0;
 			while (consumer.receiveNoWait() != null) {
-				++deleted;
+				++count;
 			}
+			return count;
 		}
-		return deleted;
 	}
 
-	public long count(String queueName) {
-		log.info("Get count of messages in queue: {}", queueName);
-		long depth = 0;
-		try (QueueBrowser browser = context.createBrowser(createQueue(queueName))) {
+	public int depth(String queueName) {
+		log.info("Counting number of messages in queue: {}", queueName);
+
+		try (QueueBrowser browser = getContext().createBrowser(getQueue(queueName))) {
 			Enumeration<?> me = browser.getEnumeration();
+			int count = 0;
 			while (me.hasMoreElements()) {
-				++depth;
+				++count;
 				me.nextElement();
 			}
+			return count;
 		} catch (JMSException e) {
-			log.error("Failed to get count of messages in queue: {}", queueName);
+			throw new JmsException(e);
 		}
-		return depth;
 	}
 
-	public JmsMessage peek(String queueName) {
-		log.info("Receiving message from queue: {}", queueName);
-		try (QueueBrowser browser = context.createBrowser(createQueue(queueName))) {
+	public JmsMessage browse(String queueName) {
+		log.info("Browsing first message in queue: {}", queueName);
+		try (QueueBrowser browser = getContext().createBrowser(getQueue(queueName))) {
 			Enumeration<?> me = browser.getEnumeration();
-			if (me.hasMoreElements()) {
-				return toJmsMessage((Message) me.nextElement());
-			}
+			return me.hasMoreElements() ? toJmsMessage((Message) me.nextElement()) : null;
 		} catch (JMSException e) {
-			log.error("Failed to browse queue: {}", queueName);
+			throw new JmsException(e);
 		}
-		return null;
 	}
 
-	private JmsMessage toJmsMessage(Message message) {
-		try {
-			Map<String, String> properties = new TreeMap<>();
-			Enumeration<?> names = message.getPropertyNames();
-			while (names.hasMoreElements()) {
-				String name = (String) names.nextElement();
-				properties.put(name, message.getStringProperty(name));
-			}
-			if (log.isDebugEnabled()) {
-				log.debug("Message properties: {}", GSON.toJson(properties));
-			}
-			return new JmsMessage(message.getBody(String.class), properties);
-		} catch (JMSException e) {
-			throw new RuntimeException("Failed to extract message", e);
+	private JmsMessage toJmsMessage(Message message) throws JMSException {
+		if (message == null) {
+			return null;
 		}
+		Map<String, String> properties = new TreeMap<>();
+		Enumeration<?> names = message.getPropertyNames();
+		while (names.hasMoreElements()) {
+			String name = (String) names.nextElement();
+			properties.put(name, message.getStringProperty(name));
+		}
+		return new JmsMessage(message.getBody(String.class), properties);
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() {
 		if (context != null) {
 			context.close();
+			context = null;
 		}
 	}
 

@@ -6,10 +6,10 @@ import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 
 public class ArtemisJmsClient extends JmsClient {
 
-	private ActiveMQConnectionFactory connectionFactory;
+	private final ActiveMQConnectionFactory connectionFactory;
 
-	public ArtemisJmsClient(String url) {
-		this.connectionFactory = new ActiveMQConnectionFactory(url);
+	public ArtemisJmsClient(String brokerUrl) {
+		connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
 	}
 
 	@Override
@@ -18,10 +18,8 @@ public class ArtemisJmsClient extends JmsClient {
 	}
 
 	@Override
-	public void close() throws Exception {
-		if (context != null) {
-			context.close();
-		}
+	public void close() {
+		super.close(); // session created from the factory has dependency on the latter
 		connectionFactory.close();
 	}
 
