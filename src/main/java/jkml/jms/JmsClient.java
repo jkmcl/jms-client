@@ -1,11 +1,9 @@
 package jkml.jms;
 
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
@@ -21,21 +19,13 @@ public abstract class JmsClient implements AutoCloseable {
 
 	private final Logger log = LoggerFactory.getLogger(JmsClient.class);
 
-	private final Map<String, Queue> queueMap = new HashMap<>();
-
-	private JMSContext context;
+	protected JMSContext context = null;
 
 	protected abstract ConnectionFactory getConnectionFactory();
 
-	protected Queue createQueue(String queueName) {
-		return getContext().createQueue(queueName);
-	}
+	protected abstract Queue createQueue(String name);
 
-	private Queue getQueue(String queueName) {
-		return queueMap.computeIfAbsent(queueName, this::createQueue);
-	}
-
-	protected JMSContext getContext() {
+	private JMSContext getContext() {
 		if (context == null) {
 			context = getConnectionFactory().createContext(JMSContext.AUTO_ACKNOWLEDGE);
 		}
@@ -44,11 +34,11 @@ public abstract class JmsClient implements AutoCloseable {
 
 	public boolean connect() {
 		log.info("Connecting to provider");
-		try (Connection conn = getConnectionFactory().createConnection()) {
-			conn.start();
+		try {
+			getContext();
 			log.info("Connected to provider");
 			return true;
-		} catch (JMSException e) {
+		} catch (Exception e) {
 			log.info("Failed to connect to provider");
 			return false;
 		}
@@ -57,13 +47,13 @@ public abstract class JmsClient implements AutoCloseable {
 	public void put(String queueName, String message) {
 		log.info("Sending message to queue: {}", queueName);
 
-		getContext().createProducer().send(getQueue(queueName), message);
+		getContext().createProducer().send(createQueue(queueName), message);
 	}
 
 	public JmsMessage get(String queueName) {
 		log.info("Receiving message from queue: {}", queueName);
 
-		try (JMSConsumer consumer = getContext().createConsumer(getQueue(queueName))) {
+		try (JMSConsumer consumer = getContext().createConsumer(createQueue(queueName))) {
 			return toJmsMessage(consumer.receiveNoWait());
 		} catch (JMSException e) {
 			throw new JmsException(e);
@@ -73,7 +63,7 @@ public abstract class JmsClient implements AutoCloseable {
 	public int clear(String queueName) {
 		log.info("Deleting all messages in queue: {}", queueName);
 
-		try (JMSConsumer consumer = getContext().createConsumer(getQueue(queueName))) {
+		try (JMSConsumer consumer = getContext().createConsumer(createQueue(queueName))) {
 			int count = 0;
 			while (consumer.receiveNoWait() != null) {
 				++count;
@@ -85,7 +75,7 @@ public abstract class JmsClient implements AutoCloseable {
 	public int depth(String queueName) {
 		log.info("Counting number of messages in queue: {}", queueName);
 
-		try (QueueBrowser browser = getContext().createBrowser(getQueue(queueName))) {
+		try (QueueBrowser browser = getContext().createBrowser(createQueue(queueName))) {
 			Enumeration<?> me = browser.getEnumeration();
 			int count = 0;
 			while (me.hasMoreElements()) {
@@ -100,7 +90,7 @@ public abstract class JmsClient implements AutoCloseable {
 
 	public JmsMessage browse(String queueName) {
 		log.info("Browsing first message in queue: {}", queueName);
-		try (QueueBrowser browser = getContext().createBrowser(getQueue(queueName))) {
+		try (QueueBrowser browser = getContext().createBrowser(createQueue(queueName))) {
 			Enumeration<?> me = browser.getEnumeration();
 			return me.hasMoreElements() ? toJmsMessage((Message) me.nextElement()) : null;
 		} catch (JMSException e) {
@@ -108,7 +98,7 @@ public abstract class JmsClient implements AutoCloseable {
 		}
 	}
 
-	private JmsMessage toJmsMessage(Message message) throws JMSException {
+	private static JmsMessage toJmsMessage(Message message) throws JMSException {
 		if (message == null) {
 			return null;
 		}
@@ -119,14 +109,6 @@ public abstract class JmsClient implements AutoCloseable {
 			properties.put(name, message.getStringProperty(name));
 		}
 		return new JmsMessage(message.getBody(String.class), properties);
-	}
-
-	@Override
-	public void close() {
-		if (context != null) {
-			context.close();
-			context = null;
-		}
 	}
 
 }
