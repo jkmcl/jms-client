@@ -13,7 +13,7 @@ public class Application {
 	}
 
 	@Bean
-	public ArtemisConfigurationCustomizer artemisConfigurationCustomizer() {
+	ArtemisConfigurationCustomizer artemisConfigurationCustomizer() {
 		return config -> {
 			config.getAddressesSettings().values().forEach(settings -> {
 				settings.setAutoCreateAddresses(false);

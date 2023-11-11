@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -17,6 +19,7 @@
 	<properties>
 		<java.version>11</java.version>
 		<ibm.mq.version>9.3.0.11</ibm.mq.version>
+		<json.version>20231013</json.version>
 		<awaitility.version>4.2.0</awaitility.version>
 	</properties>
 
@@ -31,14 +34,10 @@
 			<groupId>com.ibm.mq</groupId>
 			<artifactId>com.ibm.mq.allclient</artifactId>
 			<version>${ibm.mq.version}</version>
-			<!-- Exclude optional dependencies. See https://www.ibm.com/docs/en/ibm-mq/9.2?topic=jms-mq-classes-relocatable-jar-files -->
+			<!-- Exclude optional dependencies. See https://www.ibm.com/docs/en/ibm-mq/9.3?topic=jms-mq-classes-jmsjakarta-messagingrelocatable-jar-files -->
 			<exclusions>
 				<exclusion>
 					<groupId>org.bouncycastle</groupId>
-					<artifactId>*</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.json</groupId>
 					<artifactId>*</artifactId>
 				</exclusion>
 			</exclusions>
@@ -62,5 +61,15 @@
 		</dependency>
 
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.json</groupId>
+				<artifactId>json</artifactId>
+				<version>${json.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 </project>
