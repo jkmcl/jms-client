@@ -1,14 +1,14 @@
 package jkml.jms;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Queue;
+import com.ibm.mq.jakarta.jms.MQDestination;
+import com.ibm.msg.client.jakarta.jms.JmsConnectionFactory;
+import com.ibm.msg.client.jakarta.jms.JmsConstants;
+import com.ibm.msg.client.jakarta.jms.JmsFactoryFactory;
+import com.ibm.msg.client.jakarta.wmq.common.CommonConstants;
 
-import com.ibm.mq.jms.MQDestination;
-import com.ibm.msg.client.jms.JmsConnectionFactory;
-import com.ibm.msg.client.jms.JmsConstants;
-import com.ibm.msg.client.jms.JmsFactoryFactory;
-import com.ibm.msg.client.wmq.common.CommonConstants;
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSException;
+import jakarta.jms.Queue;
 
 public class IbmJmsClient extends JmsClient {
 
@@ -16,7 +16,7 @@ public class IbmJmsClient extends JmsClient {
 
 	public IbmJmsClient(IbmQueueManager queueManager) {
 		try {
-			connectionFactory = JmsFactoryFactory.getInstance(JmsConstants.WMQ_PROVIDER).createConnectionFactory();
+			connectionFactory = JmsFactoryFactory.getInstance(JmsConstants.JAKARTA_WMQ_PROVIDER).createConnectionFactory();
 			connectionFactory.setStringProperty(CommonConstants.WMQ_HOST_NAME, queueManager.getHost());
 			connectionFactory.setIntProperty(CommonConstants.WMQ_PORT, queueManager.getPort());
 			connectionFactory.setStringProperty(CommonConstants.WMQ_CHANNEL, queueManager.getChannel());

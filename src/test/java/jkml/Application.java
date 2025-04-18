@@ -15,7 +15,7 @@ public class Application {
 	@Bean
 	ArtemisConfigurationCustomizer artemisConfigurationCustomizer() {
 		return config -> {
-			config.getAddressesSettings().values().forEach(settings -> {
+			config.getAddressSettings().values().forEach(settings -> {
 				settings.setAutoCreateAddresses(false);
 				settings.setAutoCreateQueues(false);
 			});

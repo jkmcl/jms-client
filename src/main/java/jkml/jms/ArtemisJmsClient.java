@@ -1,9 +1,10 @@
 package jkml.jms;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Queue;
 
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Queue;
 
 public class ArtemisJmsClient extends JmsClient {
 

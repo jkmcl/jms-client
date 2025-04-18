@@ -4,16 +4,16 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSConsumer;
-import javax.jms.JMSContext;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Queue;
-import javax.jms.QueueBrowser;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.JMSConsumer;
+import jakarta.jms.JMSContext;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.Queue;
+import jakarta.jms.QueueBrowser;
 
 public abstract class JmsClient implements AutoCloseable {
 

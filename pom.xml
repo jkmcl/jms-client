@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.17</version>
+		<version>3.4.4</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 
@@ -17,10 +17,9 @@
 	<version>0.0.1-SNAPSHOT</version>
 
 	<properties>
-		<java.version>11</java.version>
-		<ibm.mq.version>9.3.0.11</ibm.mq.version>
-		<json.version>20231013</json.version>
-		<awaitility.version>4.2.0</awaitility.version>
+		<java.version>17</java.version>
+		<ibm.mq.version>9.3.0.27</ibm.mq.version>
+		<json.version>20250107</json.version>
 	</properties>
 
 	<dependencies>
@@ -32,7 +31,7 @@
 
 		<dependency>
 			<groupId>com.ibm.mq</groupId>
-			<artifactId>com.ibm.mq.allclient</artifactId>
+			<artifactId>com.ibm.mq.jakarta.client</artifactId>
 			<version>${ibm.mq.version}</version>
 			<!-- Exclude optional dependencies. See https://www.ibm.com/docs/en/ibm-mq/9.3?topic=jms-mq-classes-jmsjakarta-messagingrelocatable-jar-files -->
 			<exclusions>
@@ -48,6 +47,7 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.awaitility</groupId>
 			<artifactId>awaitility</artifactId>
