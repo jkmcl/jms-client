@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.4</version>
+		<version>3.4.5</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 
@@ -56,7 +56,7 @@
 
 		<dependency>
 			<groupId>org.apache.activemq</groupId>
-			<artifactId>artemis-jms-server</artifactId>
+			<artifactId>artemis-jakarta-server</artifactId>
 			<scope>test</scope>
 		</dependency>
 
