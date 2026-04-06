@@ -1,8 +1,8 @@
 package jkml;
 
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.artemis.autoconfigure.ArtemisConfigurationCustomizer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jms.artemis.ArtemisConfigurationCustomizer;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
