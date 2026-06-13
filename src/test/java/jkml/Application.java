@@ -14,12 +14,10 @@ public class Application {
 
 	@Bean
 	ArtemisConfigurationCustomizer artemisConfigurationCustomizer() {
-		return config -> {
-			config.getAddressSettings().values().forEach(settings -> {
-				settings.setAutoCreateAddresses(false);
-				settings.setAutoCreateQueues(false);
-			});
-		};
+		return config -> config.getAddressSettings().values().forEach(settings -> {
+			settings.setAutoCreateAddresses(false);
+			settings.setAutoCreateQueues(false);
+		});
 	}
 
 }

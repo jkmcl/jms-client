@@ -28,21 +28,13 @@ public class IbmJmsClient extends JmsClient {
 	}
 
 	@Override
-	public void close() {
-		if (context != null) {
-			context.close();
-			context = null;
-		}
-	}
-
-	@Override
 	protected ConnectionFactory getConnectionFactory() {
 		return connectionFactory;
 	}
 
 	@Override
 	protected Queue createQueue(String queueName) {
-		Queue queue = context.createQueue("queue:///" + queueName);
+		var queue = getContext().createQueue("queue:///" + queueName);
 		try {
 			// Do not send JMS header
 			((MQDestination) queue).setTargetClient(CommonConstants.WMQ_CLIENT_NONJMS_MQ);

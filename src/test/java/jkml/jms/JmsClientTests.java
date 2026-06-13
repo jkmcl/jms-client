@@ -17,14 +17,14 @@ class JmsClientTests {
 	private static final String QUEUE_NAME = "queue1";
 
 	@Test
-	void test() throws Exception {
+	void test() {
 		try (JmsClient client = new ArtemisJmsClient(ARTEMIS_BROKER_URL)) {
 
 			// Test connect
 			client.connect();
 
 			// Test put and depth
-			String expected = UUID.randomUUID().toString();
+			var expected = UUID.randomUUID().toString();
 			client.put(QUEUE_NAME, expected);
 			await().until(() -> client.depth(QUEUE_NAME) == 1);
 

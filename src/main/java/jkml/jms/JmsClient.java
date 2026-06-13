@@ -8,28 +8,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import jakarta.jms.ConnectionFactory;
-import jakarta.jms.JMSConsumer;
 import jakarta.jms.JMSContext;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.Queue;
-import jakarta.jms.QueueBrowser;
 
 public abstract class JmsClient implements AutoCloseable {
 
 	private final Logger log = LoggerFactory.getLogger(JmsClient.class);
 
-	protected JMSContext context = null;
+	private JMSContext context = null;
 
 	protected abstract ConnectionFactory getConnectionFactory();
 
 	protected abstract Queue createQueue(String name);
 
-	private JMSContext getContext() {
+	protected JMSContext getContext() {
 		if (context == null) {
 			context = getConnectionFactory().createContext(JMSContext.AUTO_ACKNOWLEDGE);
 		}
 		return context;
+	}
+
+	@Override
+	public void close()  {
+		if (context != null) {
+			context.close();
+		}
 	}
 
 	public boolean connect() {
@@ -53,7 +58,7 @@ public abstract class JmsClient implements AutoCloseable {
 	public JmsMessage get(String queueName) {
 		log.info("Receiving message from queue: {}", queueName);
 
-		try (JMSConsumer consumer = getContext().createConsumer(createQueue(queueName))) {
+		try (var consumer = getContext().createConsumer(createQueue(queueName))) {
 			return toJmsMessage(consumer.receiveNoWait());
 		} catch (JMSException e) {
 			throw new JmsException(e);
@@ -63,8 +68,8 @@ public abstract class JmsClient implements AutoCloseable {
 	public int clear(String queueName) {
 		log.info("Deleting all messages in queue: {}", queueName);
 
-		try (JMSConsumer consumer = getContext().createConsumer(createQueue(queueName))) {
-			int count = 0;
+		try (var consumer = getContext().createConsumer(createQueue(queueName))) {
+			var count = 0;
 			while (consumer.receiveNoWait() != null) {
 				++count;
 			}
@@ -75,9 +80,9 @@ public abstract class JmsClient implements AutoCloseable {
 	public int depth(String queueName) {
 		log.info("Counting number of messages in queue: {}", queueName);
 
-		try (QueueBrowser browser = getContext().createBrowser(createQueue(queueName))) {
+		try (var browser = getContext().createBrowser(createQueue(queueName))) {
 			Enumeration<?> me = browser.getEnumeration();
-			int count = 0;
+			var count = 0;
 			while (me.hasMoreElements()) {
 				++count;
 				me.nextElement();
@@ -90,7 +95,7 @@ public abstract class JmsClient implements AutoCloseable {
 
 	public JmsMessage browse(String queueName) {
 		log.info("Browsing first message in queue: {}", queueName);
-		try (QueueBrowser browser = getContext().createBrowser(createQueue(queueName))) {
+		try (var browser = getContext().createBrowser(createQueue(queueName))) {
 			Enumeration<?> me = browser.getEnumeration();
 			return me.hasMoreElements() ? toJmsMessage((Message) me.nextElement()) : null;
 		} catch (JMSException e) {
@@ -105,7 +110,7 @@ public abstract class JmsClient implements AutoCloseable {
 		Map<String, String> properties = new TreeMap<>();
 		Enumeration<?> names = message.getPropertyNames();
 		while (names.hasMoreElements()) {
-			String name = (String) names.nextElement();
+			var name = (String) names.nextElement();
 			properties.put(name, message.getStringProperty(name));
 		}
 		return new JmsMessage(message.getBody(String.class), properties);

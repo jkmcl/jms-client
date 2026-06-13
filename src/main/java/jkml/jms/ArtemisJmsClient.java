@@ -1,6 +1,5 @@
 package jkml.jms;
 
-
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 
 import jakarta.jms.ConnectionFactory;
@@ -16,11 +15,8 @@ public class ArtemisJmsClient extends JmsClient {
 
 	@Override
 	public void close() {
-		if (context != null) {
-			context.close();
-			context = null;
-		}
 		connectionFactory.close();
+		super.close();
 	}
 
 	@Override
@@ -30,7 +26,7 @@ public class ArtemisJmsClient extends JmsClient {
 
 	@Override
 	protected Queue createQueue(String name) {
-		return context.createQueue(name);
+		return getContext().createQueue(name);
 	}
 
 }

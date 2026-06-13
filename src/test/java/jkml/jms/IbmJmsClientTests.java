@@ -8,15 +8,14 @@ class IbmJmsClientTests {
 
 	@Test
 	void test() {
-
 		var qmgr = new IbmQueueManager();
-		qmgr.setHost("locahost");
+		qmgr.setHost("localhost");
 		qmgr.setPort(1414);
 		qmgr.setName("name");
 		qmgr.setChannel("channel");
 
 		try (var client = new IbmJmsClient(qmgr)) {
-			assertDoesNotThrow(() -> client.close());
+			assertDoesNotThrow(client::close);
 		}
 	}
 
